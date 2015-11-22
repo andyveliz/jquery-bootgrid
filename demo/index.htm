@@ -65,11 +65,11 @@
                         <table id="grid" class="table table-condensed table-hover table-striped" data-selection="true" data-multi-select="true" data-row-select="true" data-keep-selection="true">
                             <thead>
                                 <tr>
-                                    <th data-column-id="id" data-identifier="true" data-type="numeric" data-align="right" data-width="40">ID</th>
+                                    <th data-column-id="id" data-identifier="true" data-type="numeric" data-filterType="numeric" data-align="right" data-width="40">ID</th>
                                     <th data-column-id="sender" data-order="asc" data-align="center" data-header-align="center" data-width="75%">Sender</th>
                                     <th data-column-id="received" data-css-class="cell" data-header-css-class="column" data-filterable="true">Received</th>
-                                    <th data-column-id="link" data-formatter="link" data-sortable="false" data-width="75px">Link</th>
-                                    <th data-column-id="status" data-type="numeric" data-visible="false">Status</th>
+                                    <th data-column-id="link" data-formatter="link" data-sortable="false" data-width="75px" data-filterType="date">Link</th>
+                                    <th data-column-id="status" data-type="numeric" data-visible="false" data-filterType="list" data-options="[1:hola, 2:mundo, 3:test]">Status</th>
                                     <th data-column-id="hidden" data-visible="false" data-visible-in-selection="false">Hidden</th>
                                 </tr>
                             </thead>
@@ -273,6 +273,13 @@
                     alert($("#grid").bootgrid("getSelectedRows"));
                 });
             });
+
+            function showAdvancedFilters(data){
+                data = JSON.parse(atob(data));
+                alert("filtros!");
+                console.log(data);
+            }
+
         </script>
     </body>
 </html>

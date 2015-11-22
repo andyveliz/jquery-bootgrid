@@ -118,7 +118,9 @@ function loadColumns()
                 visible: !(data.visible === false), // default: true
                 visibleInSelection: !(data.visibleInSelection === false), // default: true
                 width: ($.isNumeric(data.width)) ? data.width + "px" : 
-                    (typeof(data.width) === "string") ? data.width : null
+                    (typeof(data.width) === "string") ? data.width : null,
+                filterType: data.filtertype || "string",
+                options: data.options
             };
         that.columns.push(column);
         if (column.order != null)
@@ -347,6 +349,9 @@ function renderActions()
                 actions.append(refresh);
             }
 
+            //Advanced Search Filters
+            renderAdvancedFilters.call(this, actions);
+
             // Row count selection
             renderRowCountSelection.call(this, actions);
 
@@ -356,6 +361,111 @@ function renderActions()
             replacePlaceHolder.call(this, actionItems, actions);
         }
     }
+}
+
+function renderAdvancedFilters(actions)
+{
+    if (this.options.columnSelection && this.columns.length > 1)
+    {
+        var that = this,
+            css = this.options.css,
+            tpl = this.options.templates,
+            selector = getCssSelector(css.advSearch),
+            advSearchItems = findFooterAndHeaderItems.call(this, selector),
+            advSearch = $(tpl.advSearch.resolve(getParams.call(this))),
+            modal = $(tpl.modalAdvancedFilters);
+        
+        $(document.body).append(modal);
+
+        $(advSearch).on("click", function(e){
+            e.stopPropagation();
+            $(modal).modal("show");
+        });
+        
+        var item =  $("<div class='row'>"+
+                    "   <div class='col-sm-10'>"+
+                    "       <select id='select-filter' class='form-control'></select>"+
+                    "   </div>"+
+                    "   <button class='btn btn-primary' id='advFilterBtn'><span class='fa fa-plus-o'></span></button>"+
+                    "</div>");
+
+        var table = $("<table class='table table-hover'><thead><th>Columna</th><th style='min-width:100px'>Op.</th><th>Valores</th><th></th></thead><tbody class='advFiltersTBody'></tbody></table>");
+
+        $.each(this.columns, function (i, column)
+        {
+            var o = new Option(column.text, i);
+            // jquerify the DOM object 'o' so we can use the html method
+            $(o).html(column.text);
+            $(item).find("#select-filter").append(o);
+            
+        });
+
+        $(item).on("click"+ namespace, "#advFilterBtn", function(e){
+            e.stopPropagation();
+            addAdvancedFilter.call(that, that.columns[$("#select-filter").val()]);
+        });
+
+        $(".btnAcceptFilters").on("click"+ namespace, function(e){
+            //e.stopPropagation();
+            console.log("ACEPTANDO FILTROS");
+        });
+
+        $(modal).find(".modal-body").append(item);
+        $(modal).find(".modal-body").append(table);
+
+        //var item = $("<button class='btn btn-default btn-advanced' <span class='fa fa-binoculars'></span> Filtros Avanzados</button>");
+        //actions.append(item);
+
+        replacePlaceHolder.call(this, advSearchItems, advSearch);
+    }
+}
+
+function addAdvancedFilter(column){
+    console.log(column);
+    var that = this,
+        css = this.options.css,
+        tpl = this.options.templates,
+        selector = getCssSelector(css.advFiltersTBody);
+
+    var op = "";
+    var val = "";
+    if(column.filterType === "numeric"){
+        op = tpl.numberAdvancedFilterOp.resolve(getParams.call(this));
+        val = tpl.numberAdvancedFilterValue.resolve(getParams.call(this));
+    }
+    else if(column.filterType === "date"){
+        op = tpl.dateAdvancedFilterOp.resolve(getParams.call(this));
+        val = tpl.dateAdvancedFilterValue.resolve(getParams.call(this));
+    }
+    else if(column.filterType === "list"){
+        //op = tpl.dateAdvancedFilterOp.resolve(getParams.call(this));
+        //val = tpl.dateAdvancedFilterValue.resolve(getParams.call(this));
+        var ops = column.options.substring(1,column.options.length-1).split(",");
+        var optionsHtml = "";
+        for (var i = 0; i < ops.length; i++) {
+            var arr = ops[i].trim().split(":");
+            if(arr.length === 2){
+                optionsHtml += "<option value='"+arr[0]+"'>"+arr[1]+"</option>";
+            }
+        }
+        val = tpl.listAdvancedFilterValue.resolve(getParams.call(this, {options: optionsHtml}));
+    }
+    else {
+        op = tpl.stringAdvancedFilterOp.resolve(getParams.call(this));
+        val = tpl.stringAdvancedFilterValue.resolve(getParams.call(this));
+    }
+
+    var row = $(tpl.advancedFiltersTableRow.resolve(getParams.call(this, {
+        colName: column.text , op: op, val: val, rowID : "row-"+column.id, bt: "<button class='btn btn-sm btn-danger'><span class='fa fa-remove'></button>"
+    })));
+
+    row.find("button").on("click"+namespace, function(e){
+            e.stopPropagation();
+            $(selector).find("#row-"+column.id).remove();
+        });
+
+    $(selector).append(row);
+
 }
 
 function renderColumnSelection(actions)

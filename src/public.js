@@ -18,6 +18,7 @@ var Grid = function(element, options)
     // overrides rowCount explicitly because deep copy ($.extend) leads to strange behaviour
     var rowCount = this.options.rowCount = this.element.data().rowCount || options.rowCount || this.options.rowCount;
     this.columns = [];
+    this.advancedFilters = [];
     this.current = 1;
     this.currentRows = [];
     this.identifier = null; // The first column ID that is marked as identifier
@@ -296,10 +297,11 @@ Grid.defaults = {
 
         right: "text-right",
         search: "search form-group", // must be a unique class name or constellation of class names within the header and footer
+        advSearch: "adv-search form-group", 
         searchField: "search-field form-control",
         selectBox: "select-box", // must be a unique class name or constellation of class names within the entire table
         selectCell: "select-cell", // must be a unique class name or constellation of class names within the entire table
-
+        advFiltersTBody: "advFiltersTBody",
         /**
          * CSS class to highlight selected rows.
          *
@@ -403,7 +405,7 @@ Grid.defaults = {
         body: "<tbody></tbody>",
         cell: "<td class=\"{{ctx.css}}\" style=\"{{ctx.style}}\">{{ctx.content}}</td>",
         footer: "<div id=\"{{ctx.id}}\" class=\"{{css.footer}}\"><div class=\"row\"><div class=\"col-sm-6\"><p class=\"{{css.pagination}}\"></p></div><div class=\"col-sm-6 infoBar\"><p class=\"{{css.infos}}\"></p></div></div></div>",
-        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
+        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.advSearch}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
         headerCell: "<th data-column-id=\"{{ctx.column.id}}\" class=\"{{ctx.css}}\" style=\"{{ctx.style}}\"><a href=\"javascript:void(0);\" class=\"{{css.columnHeaderAnchor}} {{ctx.sortable}}\"><span class=\"{{css.columnHeaderText}}\">{{ctx.column.text}}</span>{{ctx.icon}}</a></th>",
         icon: "<span class=\"{{css.icon}} {{ctx.iconCss}}\"></span>",
         infos: "<div class=\"{{css.infos}}\">{{lbl.infos}}</div>",
@@ -414,7 +416,18 @@ Grid.defaults = {
         rawHeaderCell: "<th class=\"{{ctx.css}}\">{{ctx.content}}</th>", // Used for the multi select box
         row: "<tr{{ctx.attr}}>{{ctx.cells}}</tr>",
         search: "<div class=\"{{css.search}}\"><div class=\"input-group\"><span class=\"{{css.icon}} input-group-addon {{css.iconSearch}}\"></span> <input type=\"text\" class=\"{{css.searchField}}\" placeholder=\"{{lbl.search}}\" /></div></div>",
-        select: "<input name=\"select\" type=\"{{ctx.type}}\" class=\"{{css.selectBox}}\" value=\"{{ctx.value}}\" {{ctx.checked}} />"
+        advSearch: "<div class=\"{{css.advSearch}}\"><button class=\"btn btn-default btn-advanced\" <span class=\"fa fa-binoculars\"></span> Filtros Avanzados</button></div>",
+        select: "<input name=\"select\" type=\"{{ctx.type}}\" class=\"{{css.selectBox}}\" value=\"{{ctx.value}}\" {{ctx.checked}} />",
+        modalAdvancedFilters: "<div class=\"modal fade\" id=\"advanced-filters\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">&times;</button><h4 class=\"modal-title\">Filtros Avanzados</h4></div><div class=\"modal-body\"></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cerrar</button><button type=\"button\" class=\"btn btn-primary btnAcceptFilters\" data-dismiss=\"modal\">Filtrar</button></div></div></div></div>",
+        advancedFiltersTableRow: "<tr id=\"{{ctx.rowID}}\"><td>{{ctx.colName}}</td><td>{{ctx.op}}</td><td>{{ctx.val}}</td><td>{{ctx.bt}}</td></tr>",
+        numberAdvancedFilterOp: "<select class=\"form-control\"><option value=\"eq\">=</option><option value=\"men\">&lt;</option><option value=\"meneq\">&lt;=</option><option value=\"may\">&gt;</option><option value=\"mayeq\">&gt;=</option></select>",
+        numberAdvancedFilterValue: "<input class=\"form-control\" name=\"filterValue\" type=\"number\"/>",
+        stringAdvancedFilterOp: "<select class=\"form-control\"><option value=\"eq\">Igual</option><option value=\"cont\">Contiene</option><option value=\"startswith\">Comienza con</option><option value=\"endswith\">Termina con</option></select>",
+        stringAdvancedFilterValue: "<input class=\"form-control\" name=\"filterValue\" type=\"text\"/>",
+        dateAdvancedFilterOp: "",
+        dateAdvancedFilterValue: "<form class=\"form-inline\"><div class=\"form-group col-sm-12\"><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"glyphicon glyphicon-calendar\"></span></div><input class=\"form-control\" name=\"filterValue[start]\" type=\"date\"/></div></div><div class=\"form-group col-sm-12\"><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"glyphicon glyphicon-calendar\"></span></div><input class=\"form-control\" name=\"filterValue[end]\" type=\"date\"/></div></div></form>",
+        listAdvancedFilterOp: "",
+        listAdvancedFilterValue: "<select class=\"form-control\">{{ctx.options}}</select>",
     }
 };
 
