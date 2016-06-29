@@ -110,9 +110,11 @@ test("getRequest post function test", 1, function ()
             current: 1,
             rowCount: 5,
             sortDictionary: [],
-            searchPhrase: ""
+            searchPhrase: "",
+            advancedFilters: []
         },
         expected = {
+            advancedFilters: [],
             current: 1,
             id: "test",
             rowCount: 5,
@@ -139,9 +141,11 @@ test("getRequest post object test", 1, function() {
             current: 1,
             rowCount: 5,
             sortDictionary: [],
-            searchPhrase: ""
+            searchPhrase: "",
+            advancedFilters: []
         },
         expected = {
+            advancedFilters: [],
             current: 1,
             id: "test",
             rowCount: 5,

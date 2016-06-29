@@ -2,6 +2,7 @@
 // ====================
 
 var namespace = ".rs.jquery.bootgrid";
+var tmpAdvFilters = [];
 
 // GRID INTERNAL FUNCTIONS
 // =====================
@@ -43,7 +44,8 @@ function getRequest()
             current: this.current,
             rowCount: this.rowCount,
             sort: this.sortDictionary,
-            searchPhrase: this.searchPhrase
+            searchPhrase: this.searchPhrase,
+            advancedFilters: this.advancedFilters
         },
         post = this.options.post;
 
@@ -384,19 +386,21 @@ function renderAdvancedFilters(actions)
         
         var item =  $("<div class='row'>"+
                     "   <div class='col-sm-10'>"+
-                    "       <select id='select-filter' class='form-control'></select>"+
+                    "       <select id='select-filter' class='form-control'><option disabled>Seleccione una Columna</option></select>"+
                     "   </div>"+
-                    "   <button class='btn btn-primary' id='advFilterBtn'><span class='fa fa-plus-o'></span></button>"+
+                    "   <button class='btn btn-primary' id='advFilterBtn'><span class='fa fa-plus'></span></button>"+
                     "</div>");
 
         var table = $("<table class='table table-hover'><thead><th>Columna</th><th style='min-width:100px'>Op.</th><th>Valores</th><th></th></thead><tbody class='advFiltersTBody'></tbody></table>");
 
         $.each(this.columns, function (i, column)
         {
-            var o = new Option(column.text, i);
-            // jquerify the DOM object 'o' so we can use the html method
-            $(o).html(column.text);
-            $(item).find("#select-filter").append(o);
+            if(column.searchable){
+                var o = new Option(column.text, i);
+                // jquerify the DOM object 'o' so we can use the html method
+                $(o).html(column.text);
+                $(item).find("#select-filter").append(o);
+            }
             
         });
 
@@ -407,7 +411,17 @@ function renderAdvancedFilters(actions)
 
         $(".btnAcceptFilters").on("click"+ namespace, function(e){
             //e.stopPropagation();
-            console.log("ACEPTANDO FILTROS");
+            for(var id in that.advancedFilters){
+                if(that.advancedFilters[id].type === "date"){
+                    that.advancedFilters[id].start = $("#row-"+id).find("#filterValueStart").val();
+                    that.advancedFilters[id].end = $("#row-"+id).find("#filterValueEnd").val();
+                } else {
+                    that.advancedFilters[id].value = $("#row-"+id).find("#filterValue").val();
+                    that.advancedFilters[id].op = $("#row-"+id).find("#filterOp").val();
+                }
+            }
+
+            loadData.call(that);
         });
 
         $(modal).find(".modal-body").append(item);
@@ -421,7 +435,7 @@ function renderAdvancedFilters(actions)
 }
 
 function addAdvancedFilter(column){
-    console.log(column);
+    //console.log(column);
     var that = this,
         css = this.options.css,
         tpl = this.options.templates,
@@ -456,15 +470,20 @@ function addAdvancedFilter(column){
     }
 
     var row = $(tpl.advancedFiltersTableRow.resolve(getParams.call(this, {
-        colName: column.text , op: op, val: val, rowID : "row-"+column.id, bt: "<button class='btn btn-sm btn-danger'><span class='fa fa-remove'></button>"
+        colName: column.text , op: op, val: val, rowID : "row-"+that.advancedFilters.length, bt: "<button class='btn btn-sm btn-danger'><span class='fa fa-remove'></button>"
     })));
 
     row.find("button").on("click"+namespace, function(e){
             e.stopPropagation();
-            $(selector).find("#row-"+column.id).remove();
+            var id = $(this).parent().parent().attr("id");
+            id = id.substring(4);
+            delete that.advancedFilters[id];
+            $(this).parent().parent().remove();
         });
 
     $(selector).append(row);
+
+    that.advancedFilters.push({col: column.id, type: column.filterType});
 
 }
 

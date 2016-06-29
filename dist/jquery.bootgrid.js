@@ -1,5 +1,5 @@
 /*! 
- * jQuery Bootgrid v1.3.1 - 11/19/2015
+ * jQuery Bootgrid v1.3.1 - 12/02/2015
  * Copyright (c) 2014-2015 Rafael Staib (http://www.jquery-bootgrid.com)
  * Licensed under MIT http://www.opensource.org/licenses/MIT
  */
@@ -12,6 +12,7 @@
 // ====================
 
 var namespace = ".rs.jquery.bootgrid";
+var tmpAdvFilters = [];
 
 // GRID INTERNAL FUNCTIONS
 // =====================
@@ -53,7 +54,8 @@ function getRequest()
             current: this.current,
             rowCount: this.rowCount,
             sort: this.sortDictionary,
-            searchPhrase: this.searchPhrase
+            searchPhrase: this.searchPhrase,
+            advancedFilters: this.advancedFilters
         },
         post = this.options.post;
 
@@ -394,19 +396,21 @@ function renderAdvancedFilters(actions)
         
         var item =  $("<div class='row'>"+
                     "   <div class='col-sm-10'>"+
-                    "       <select id='select-filter' class='form-control'></select>"+
+                    "       <select id='select-filter' class='form-control'><option disabled>Seleccione una Columna</option></select>"+
                     "   </div>"+
-                    "   <button class='btn btn-primary' id='advFilterBtn'><span class='fa fa-plus-o'></span></button>"+
+                    "   <button class='btn btn-primary' id='advFilterBtn'><span class='fa fa-plus'></span></button>"+
                     "</div>");
 
         var table = $("<table class='table table-hover'><thead><th>Columna</th><th style='min-width:100px'>Op.</th><th>Valores</th><th></th></thead><tbody class='advFiltersTBody'></tbody></table>");
 
         $.each(this.columns, function (i, column)
         {
-            var o = new Option(column.text, i);
-            // jquerify the DOM object 'o' so we can use the html method
-            $(o).html(column.text);
-            $(item).find("#select-filter").append(o);
+            if(column.searchable){
+                var o = new Option(column.text, i);
+                // jquerify the DOM object 'o' so we can use the html method
+                $(o).html(column.text);
+                $(item).find("#select-filter").append(o);
+            }
             
         });
 
@@ -417,7 +421,17 @@ function renderAdvancedFilters(actions)
 
         $(".btnAcceptFilters").on("click"+ namespace, function(e){
             //e.stopPropagation();
-            console.log("ACEPTANDO FILTROS");
+            for(var id in that.advancedFilters){
+                if(that.advancedFilters[id].type === "date"){
+                    that.advancedFilters[id].start = $("#row-"+id).find("#filterValueStart").val();
+                    that.advancedFilters[id].end = $("#row-"+id).find("#filterValueEnd").val();
+                } else {
+                    that.advancedFilters[id].value = $("#row-"+id).find("#filterValue").val();
+                    that.advancedFilters[id].op = $("#row-"+id).find("#filterOp").val();
+                }
+            }
+
+            loadData.call(that);
         });
 
         $(modal).find(".modal-body").append(item);
@@ -431,7 +445,7 @@ function renderAdvancedFilters(actions)
 }
 
 function addAdvancedFilter(column){
-    console.log(column);
+    //console.log(column);
     var that = this,
         css = this.options.css,
         tpl = this.options.templates,
@@ -466,15 +480,20 @@ function addAdvancedFilter(column){
     }
 
     var row = $(tpl.advancedFiltersTableRow.resolve(getParams.call(this, {
-        colName: column.text , op: op, val: val, rowID : "row-"+column.id, bt: "<button class='btn btn-sm btn-danger'><span class='fa fa-remove'></button>"
+        colName: column.text , op: op, val: val, rowID : "row-"+that.advancedFilters.length, bt: "<button class='btn btn-sm btn-danger'><span class='fa fa-remove'></button>"
     })));
 
     row.find("button").on("click"+namespace, function(e){
             e.stopPropagation();
-            $(selector).find("#row-"+column.id).remove();
+            var id = $(this).parent().parent().attr("id");
+            id = id.substring(4);
+            delete that.advancedFilters[id];
+            $(this).parent().parent().remove();
         });
 
     $(selector).append(row);
+
+    that.advancedFilters.push({col: column.id, type: column.filterType});
 
 }
 
@@ -1487,16 +1506,16 @@ Grid.defaults = {
         search: "<div class=\"{{css.search}}\"><div class=\"input-group\"><span class=\"{{css.icon}} input-group-addon {{css.iconSearch}}\"></span> <input type=\"text\" class=\"{{css.searchField}}\" placeholder=\"{{lbl.search}}\" /></div></div>",
         advSearch: "<div class=\"{{css.advSearch}}\"><button class=\"btn btn-default btn-advanced\" <span class=\"fa fa-binoculars\"></span> Filtros Avanzados</button></div>",
         select: "<input name=\"select\" type=\"{{ctx.type}}\" class=\"{{css.selectBox}}\" value=\"{{ctx.value}}\" {{ctx.checked}} />",
-        modalAdvancedFilters: "<div class=\"modal fade\" id=\"advanced-filters\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">&times;</button><h4 class=\"modal-title\">Filtros Avanzados</h4></div><div class=\"modal-body\"></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cerrar</button><button type=\"button\" class=\"btn btn-primary btnAcceptFilters\" data-dismiss=\"modal\">Filtrar</button></div></div></div></div>",
+        modalAdvancedFilters: "<div class=\"modal fade\" id=\"advanced-filters\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">&times;</button><h4 class=\"modal-title\">Filtros Avanzados</h4></div><div class=\"modal-body\"></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-primary btnAcceptFilters\" data-dismiss=\"modal\">Filtrar</button></div></div></div></div>",
         advancedFiltersTableRow: "<tr id=\"{{ctx.rowID}}\"><td>{{ctx.colName}}</td><td>{{ctx.op}}</td><td>{{ctx.val}}</td><td>{{ctx.bt}}</td></tr>",
-        numberAdvancedFilterOp: "<select class=\"form-control\"><option value=\"eq\">=</option><option value=\"men\">&lt;</option><option value=\"meneq\">&lt;=</option><option value=\"may\">&gt;</option><option value=\"mayeq\">&gt;=</option></select>",
-        numberAdvancedFilterValue: "<input class=\"form-control\" name=\"filterValue\" type=\"number\"/>",
-        stringAdvancedFilterOp: "<select class=\"form-control\"><option value=\"eq\">Igual</option><option value=\"cont\">Contiene</option><option value=\"startswith\">Comienza con</option><option value=\"endswith\">Termina con</option></select>",
-        stringAdvancedFilterValue: "<input class=\"form-control\" name=\"filterValue\" type=\"text\"/>",
+        numberAdvancedFilterOp: "<select id=\"filterOp\" class=\"form-control\"><option value=\"eq\">=</option><option value=\"men\">&lt;</option><option value=\"meneq\">&lt;=</option><option value=\"may\">&gt;</option><option value=\"mayeq\">&gt;=</option></select>",
+        numberAdvancedFilterValue: "<input class=\"form-control\" id=\"filterValue\" type=\"number\"/>",
+        stringAdvancedFilterOp: "<select id=\"filterOp\" class=\"form-control\"><option value=\"eq\">Igual</option><option value=\"cont\">Contiene</option><option value=\"startswith\">Comienza con</option><option value=\"endswith\">Termina con</option></select>",
+        stringAdvancedFilterValue: "<input class=\"form-control\" id=\"filterValue\" type=\"text\"/>",
         dateAdvancedFilterOp: "",
-        dateAdvancedFilterValue: "<form class=\"form-inline\"><div class=\"form-group col-sm-12\"><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"glyphicon glyphicon-calendar\"></span></div><input class=\"form-control\" name=\"filterValue[start]\" type=\"date\"/></div></div><div class=\"form-group col-sm-12\"><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"glyphicon glyphicon-calendar\"></span></div><input class=\"form-control\" name=\"filterValue[end]\" type=\"date\"/></div></div></form>",
+        dateAdvancedFilterValue: "<form class=\"form-inline\"><div class=\"form-group col-sm-12\"><label for=\"filterValueStart\" style=\"width: 40px\">Inicio</label><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"fa fa-calendar\"></span></div><input class=\"form-control\" id=\"filterValueStart\" type=\"date\"/></div></div><div class=\"form-group col-sm-12\"><label for=\"filterValueEnd\" style=\"width: 40px\">Fin</label><div class=\"input-group\"><div class=\"input-group-addon\"><span class=\"fa fa-calendar\"></span></div><input class=\"form-control\" id=\"filterValueEnd\" type=\"date\"/></div></div></form>",
         listAdvancedFilterOp: "",
-        listAdvancedFilterValue: "<select class=\"form-control\">{{ctx.options}}</select>",
+        listAdvancedFilterValue: "<select id=\"filterValue\" class=\"form-control\">{{ctx.options}}</select>",
     }
 };
 
