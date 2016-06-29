@@ -1,6 +1,6 @@
 /*! 
- * jQuery Bootgrid v1.3.1 - 12/02/2015
- * Copyright (c) 2014-2015 Rafael Staib (http://www.jquery-bootgrid.com)
+ * jQuery Bootgrid v1.3.1 - 06/29/2016
+ * Copyright (c) 2014-2016 Rafael Staib (http://www.jquery-bootgrid.com)
  * Licensed under MIT http://www.opensource.org/licenses/MIT
  */
 .bootgrid-header,
@@ -33,18 +33,18 @@
   display: none;
 }
 .bootgrid-header .adv-search,
-.bootgrid-footer .adv-search {
+.bootgrid-footer .adv-search,
+.bootgrid-header .excel-export,
+.bootgrid-footer .excel-export {
   display: inline-block;
   margin: 0 20px 0 0;
   vertical-align: middle;
 }
 .bootgrid-header .adv-search .glyphicon,
-.bootgrid-footer .adv-search .glyphicon {
+.bootgrid-footer .adv-search .glyphicon,
+.bootgrid-header .excel-export .glyphicon,
+.bootgrid-footer .excel-export .glyphicon {
   top: 0;
-}
-.bootgrid-header .adv-search .fa,
-.bootgrid-footer .adv-search .fa {
-  display: table-cell;
 }
 .bootgrid-header .pagination,
 .bootgrid-footer .pagination {

@@ -39,6 +39,7 @@ var Grid = function(element, options)
     this.header = null;
     this.footer = null;
     this.xqr = null;
+    this.ssxml = "";
 
     // todo: implement cache
 };
@@ -297,7 +298,8 @@ Grid.defaults = {
 
         right: "text-right",
         search: "search form-group", // must be a unique class name or constellation of class names within the header and footer
-        advSearch: "adv-search form-group", 
+        advSearch: "adv-search form-group",
+        excelExport: "excel-export form-group", 
         searchField: "search-field form-control",
         selectBox: "select-box", // must be a unique class name or constellation of class names within the entire table
         selectCell: "select-cell", // must be a unique class name or constellation of class names within the entire table
@@ -405,7 +407,7 @@ Grid.defaults = {
         body: "<tbody></tbody>",
         cell: "<td class=\"{{ctx.css}}\" style=\"{{ctx.style}}\">{{ctx.content}}</td>",
         footer: "<div id=\"{{ctx.id}}\" class=\"{{css.footer}}\"><div class=\"row\"><div class=\"col-sm-6\"><p class=\"{{css.pagination}}\"></p></div><div class=\"col-sm-6 infoBar\"><p class=\"{{css.infos}}\"></p></div></div></div>",
-        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.advSearch}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
+        header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.advSearch}}\"></p><p class=\"{{css.excelExport}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
         headerCell: "<th data-column-id=\"{{ctx.column.id}}\" class=\"{{ctx.css}}\" style=\"{{ctx.style}}\"><a href=\"javascript:void(0);\" class=\"{{css.columnHeaderAnchor}} {{ctx.sortable}}\"><span class=\"{{css.columnHeaderText}}\">{{ctx.column.text}}</span>{{ctx.icon}}</a></th>",
         icon: "<span class=\"{{css.icon}} {{ctx.iconCss}}\"></span>",
         infos: "<div class=\"{{css.infos}}\">{{lbl.infos}}</div>",
@@ -416,7 +418,8 @@ Grid.defaults = {
         rawHeaderCell: "<th class=\"{{ctx.css}}\">{{ctx.content}}</th>", // Used for the multi select box
         row: "<tr{{ctx.attr}}>{{ctx.cells}}</tr>",
         search: "<div class=\"{{css.search}}\"><div class=\"input-group\"><span class=\"{{css.icon}} input-group-addon {{css.iconSearch}}\"></span> <input type=\"text\" class=\"{{css.searchField}}\" placeholder=\"{{lbl.search}}\" /></div></div>",
-        advSearch: "<div class=\"{{css.advSearch}}\"><button class=\"btn btn-default btn-advanced\" <span class=\"fa fa-binoculars\"></span> Filtros Avanzados</button></div>",
+        advSearch: "<div class=\"{{css.advSearch}}\"><button class=\"btn btn-default btn-advanced\"> <span class=\"icon fa fa-binoculars\"></span> Filtros Avanzados</button></div>",
+        excelExport: "<div class=\"{{css.excelExport}}\"><a class=\"btn btn-default btn-excel\" href=\"#\"> <span class=\"icon fa fa-file-excel-o\"></span></a></div>",
         select: "<input name=\"select\" type=\"{{ctx.type}}\" class=\"{{css.selectBox}}\" value=\"{{ctx.value}}\" {{ctx.checked}} />",
         modalAdvancedFilters: "<div class=\"modal fade\" id=\"advanced-filters\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">&times;</button><h4 class=\"modal-title\">Filtros Avanzados</h4></div><div class=\"modal-body\"></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-primary btnAcceptFilters\" data-dismiss=\"modal\">Filtrar</button></div></div></div></div>",
         advancedFiltersTableRow: "<tr id=\"{{ctx.rowID}}\"><td>{{ctx.colName}}</td><td>{{ctx.op}}</td><td>{{ctx.val}}</td><td>{{ctx.bt}}</td></tr>",

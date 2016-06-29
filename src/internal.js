@@ -191,6 +191,7 @@ function loadData()
             that.selectedRows = [];
         }
 
+        renderSSXML.call(that, rows);
         renderRows.call(that, rows);
         renderInfos.call(that);
         renderPagination.call(that);
@@ -354,6 +355,9 @@ function renderActions()
             //Advanced Search Filters
             renderAdvancedFilters.call(this, actions);
 
+            //Excel Export
+            renderExcelExport.call(this, actions);
+
             // Row count selection
             renderRowCountSelection.call(this, actions);
 
@@ -363,6 +367,18 @@ function renderActions()
             replacePlaceHolder.call(this, actionItems, actions);
         }
     }
+}
+
+function renderExcelExport(actions)
+{
+    var that = this,
+        css = this.options.css,
+        tpl = this.options.templates,
+        selector = getCssSelector(css.excelExport),
+        excelExportItems = findFooterAndHeaderItems.call(this, selector),
+        excelExport = $(tpl.excelExport.resolve(getParams.call(this)));
+
+    replacePlaceHolder.call(this, excelExportItems, excelExport); 
 }
 
 function renderAdvancedFilters(actions)
@@ -697,6 +713,68 @@ function renderRowCountSelection(actions)
         });
         actions.append(dropDown);
     }
+}
+
+function renderSSXML(rows){
+    var row;
+    var col;
+    var xml;
+    var data = rows;
+
+    //FILE HEADER
+    xml =  '<?xml version="1.0"?>\n' +
+           '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n' +
+           '<ss:Worksheet ss:Name="Sheet1">\n' +
+           '<ss:Table>\n\n';
+
+    if(data.length > 0)
+    {
+        //HEADER ROW
+        var headerRow =  '<ss:Row>\n';
+        for (var colName in data[0]) {
+            headerRow += '  <ss:Cell>\n';
+            headerRow += '    <ss:Data ss:Type="String">';
+            headerRow += colName + '</ss:Data>\n';
+            headerRow += '  </ss:Cell>\n';        
+        }
+        headerRow += '</ss:Row>\n';    
+        xml += headerRow;
+
+        //BODY
+        for (row = 0; row < data.length; row++) {
+            xml += '<ss:Row>\n';
+          
+            for (col in data[row]) {
+                xml += '  <ss:Cell>\n';
+                xml += '    <ss:Data ss:Type="String">';
+                xml += data[row][col] + '</ss:Data>\n';
+                xml += '  </ss:Cell>\n';
+            }
+
+            xml += '</ss:Row>\n';
+        }
+    }
+
+    //FILE FOOTER
+    xml += '\n</ss:Table>\n' +
+           '</ss:Worksheet>\n' +
+           '</ss:Workbook>\n';
+
+
+    this.ssxml = xml;
+
+    prepareExcelButton.call(this);
+}
+
+function prepareExcelButton()
+{
+    var btn = $(".btn-excel");
+    var blob = new Blob([this.ssxml], {
+        'type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    btn.on("click", function(){
+        saveAs(blob, "CGR.xls");
+    });
 }
 
 function renderRows(rows)
