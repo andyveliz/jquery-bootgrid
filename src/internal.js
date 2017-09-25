@@ -772,8 +772,9 @@ function prepareExcelButton()
     var blob = new Blob([this.ssxml], {
         'type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
+    var filename = this.options.filename || "CGR";
     btn.on("click", function(){
-        saveAs(blob, "CGR.xls");
+        saveAs(blob, filename+".xls");
     });
 }
 
